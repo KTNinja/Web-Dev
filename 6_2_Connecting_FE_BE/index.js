@@ -1,76 +1,80 @@
 const express = require("express");
 const app = express();
-const dotenv = require("dotenv");
-const nodemon = require("nodemon");
-const jwt = require('jsonwebtoken');
-const JWT_SECRET = "kartik12345";
+const jwt = require("jsonwebtoken");
 
-dotenv.config();
-
-const PORT = process.env.PORT;
+const JWT_SECRET = "abc123";
 
 let users = [];
 
-app.use(express.json());
+function authMiddleware(req, res, next){
+    let token = req.headers.token;
+    let user = jwt.verify(token, JWT_SECRET);
 
+    if(user){
+        req.user = user;
+        return next();
+    } else{
+        res.json({
+            "message": "invalid token"
+        })
+    }
+}
 
+app.use(express.json())
 
-app.post('/signup', (req, res) => {
+app.post("/signup", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
     users.push({
-        username,
-        password
+        "username": username,
+        "password": password
     })
 
-    res.send("User signed up successfully");
+    res.status(200).json({
+        "message": "Successfull signup"
+    })
 })
 
-app.post('/signin', (req, res) => {
+app.post("/signin", (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
     let foundUser = users.find(user => user.username === username && user.password === password);
-
+    //foundUser = {
+    //      "username": username,
+    //      "password": password
+    //}
     if(foundUser){
-        const token = jwt.sign({
-            username: foundUser.username
+        let token = jwt.sign({
+            "username": username
         }, JWT_SECRET);
+
         res.json({
-            token: token
+            "token": token
         })
-        
-    } else{
-        res.send("Wrong id or password");
-    }
-
-
-})
-
-app.use((req, res, next) => {
-    if(req.headers.token){
-        return next();
-    } else{
-        res.send("User not signed in!! Sorry")
+    }else{
+        res.json({
+            "message": "Incorrect username/password"
+        })
     }
 })
 
+app.use(authMiddleware);
 
+app.get("/me", (req, res) => {
+    
+    let username = req.user.username;
 
-app.get('/me', (req, res) => {
-    const token = req.headers.token;
+    let foundUser = users.find(user => user.username === username);
 
-    const foundUser = jwt.verify(token, JWT_SECRET);
-
-    const username = foundUser.username;
-
-    let targetUser = users.find(user => user.username === username);
-
-    res.json(targetUser);
-
+    res.json({
+        "username": foundUser.username,
+        "password": foundUser.password
+    })
+      
 })
 
-app.listen(PORT, ()=>{
-    console.log("Server running at PORT " + PORT);
+app.listen("3000", ()=>{
+    console.log("Server listening at port 3000");
 })
