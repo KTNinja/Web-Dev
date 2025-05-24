@@ -1,0 +1,94 @@
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+        <script>
+            async function signup(){
+                let username = document.getElementById("signUpUser").value;
+                let password = document.getElementById("signUpPassword").value;
+
+                const response = await axios({
+                    method: 'post',
+                    url: 'http://localhost:3000/signup/',
+                    data: {
+                        "username": username,
+                        "password": password
+                    }
+                })
+
+                alert(response.data.message);
+            }
+
+            async function signin(){
+                let username = document.getElementById("signInUser").value;
+                let password = document.getElementById("signInPassword").value;
+
+                const response = await axios({
+                    method: 'post',
+                    url: 'http://localhost:3000/signin/',
+                    data: {
+                        "username": username,
+                        "password": password
+                    }
+                })
+
+                if(response.data.token){
+                    localStorage.setItem("token", response.data.token);
+                    alert("User Signed in Successfully");
+                    userInformation(localStorage.getItem("token"));
+                } else{
+                    alert("Wrong ID/Password")
+                }
+            }
+
+            async function userInformation(token){
+                const user_information = await axios({
+                    method: 'get',
+                    url: 'http://localhost:3000/me/',
+                    headers: {
+                        "token": token
+                    }
+                })
+
+                if(user_information.data.message !== "invalid token"){
+                    document.getElementById("signupDiv").hidden = true;
+                    document.getElementById("signinDiv").hidden = true;
+
+                    document.getElementById("userInfo").innerHTML = "UserName :- " + user_information.data.username;
+                }
+            }
+
+            function logout(){
+                document.getElementById("signupDiv").hidden = false;
+                document.getElementById("signinDiv").hidden = false;
+                localStorage.removeItem("token");
+                document.getElementById("userInfo").innerHTML = "";
+            }
+
+            let tokenForLogin = localStorage.getItem("token");
+            if(tokenForLogin) userInformation(localStorage.getItem("token"));
+
+        </script>
+    </head>
+    <body>
+        <div id="signupDiv">
+            SignUp
+            <input id="signUpUser" placeholder="userName" type="text" name="username"/>
+            <input id="signUpPassword" placeholder="password" type="password" name="password"/>
+            <button onclick="signup()">SignUp</button>
+        </div>
+        <div id="signinDiv">
+            SignIn
+            <input id="signInUser" placeholder="userName" type="text" name="username"/>
+            <input id="signInPassword" placeholder="password" type="password" name="password"/>
+            <button onclick="signin()">SignIn</button>
+        </div>
+        <div>
+            User Information :- 
+            <div id="userInfo"></div>
+        </div>
+        <div>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </body>
+</html>

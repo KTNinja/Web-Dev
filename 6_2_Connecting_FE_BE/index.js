@@ -2,25 +2,15 @@ const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = "abc123";
+const JWT_SECRET = (new Date()).toISOString() + (Math.random()).toString();
 
 let users = [];
 
-function authMiddleware(req, res, next){
-    let token = req.headers.token;
-    let user = jwt.verify(token, JWT_SECRET);
-
-    if(user){
-        req.user = user;
-        return next();
-    } else{
-        res.json({
-            "message": "invalid token"
-        })
-    }
-}
-
 app.use(express.json())
+
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/Public/index.html");
+})
 
 app.post("/signup", (req, res) => {
     const username = req.body.username;
@@ -60,19 +50,41 @@ app.post("/signin", (req, res) => {
     }
 })
 
-app.use(authMiddleware);
+function authMiddleware(req, res, next){
+    let token = req.headers.token;
+    let user
 
-app.get("/me", (req, res) => {
+    try{
+        user = jwt.verify(token, JWT_SECRET);
+    } catch(err){
+        user = null;
+    }
+
+    if(user){
+        req.user = user;
+        return next();
+    } else{
+        res.json({
+            "message": "invalid token"
+        })
+    }
+}
+
+// app.use(authMiddleware);
+
+app.get("/me", authMiddleware, (req, res) => {
     
     let username = req.user.username;
 
     let foundUser = users.find(user => user.username === username);
 
-    res.json({
-        "username": foundUser.username,
-        "password": foundUser.password
-    })
-      
+    if(foundUser){
+        res.json({
+            "username": foundUser.username,
+            "password": foundUser.password
+        })
+    }
+    
 })
 
 app.listen("3000", ()=>{
