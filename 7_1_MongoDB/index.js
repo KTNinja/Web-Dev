@@ -1,11 +1,8 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
 const {UserModel, TodoModel} = require("./db");
-
-const JWT_SECRET = new Date().toISOString() + Math.random().toString
-
+const {jwt, JWT_SECRET, auth} = require("./authentication")
 mongoose.set("strictQuery", false);
 
 mongoose.connect("mongodb+srv://tiwari2000kartik:RfoFSmOYNXDB578t@cluster0.7tbnx8a.mongodb.net/ToDo_App")
@@ -67,23 +64,7 @@ app.post("/signin", async (req, res) => {
 
 })
 
-async function auth(req, res, next){
-    const token = req.headers.token;
 
-    try{
-        let userIdFound = jwt.verify(token, JWT_SECRET);
-        let foundId = userIdFound.userId;
-        let foundUser = await UserModel.findOne({
-            _id: foundId
-        });
-        req.foundUser = foundUser;
-        return next();
-    } catch(err){
-        res.json({
-            message: err
-        })
-    }
-}
 
 app.post("/todo", auth, async (req, res) => {
     let todo = req.body.title;
