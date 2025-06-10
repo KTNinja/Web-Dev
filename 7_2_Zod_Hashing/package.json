@@ -1,5 +1,5 @@
 {
-  "name": "7_1_mongodb",
+  "name": "7_2_zod_hashing",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -10,9 +10,10 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoos": "^0.0.1-security",
-    "mongoose": "^8.15.1"
+    "mongoose": "^8.15.1",
+    "zod": "^3.25.57"
   }
 }
